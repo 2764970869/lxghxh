@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="./source/lxghxh.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dear Diary</title>
+    <script src="./source/3.4.16.js"></script>
+    <style>
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            90% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        .alert-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            animation: fadeOut 3s forwards;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        #editor {
+            min-height: 300px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            outline: none;
+            overflow-y: auto;
+            max-height: 60vh;
+            line-height: 1.6;
+        }
+
+        #editor:focus {
+            border-color: #3b82f6;
+        }
+
+        .toolbar-btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: white;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            color: white;
+            transition: background-color 0.2s;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            padding: 2px;
+            border-radius: 4px;
+            border: 2px solid #cbd5e1;
+            cursor: pointer;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border-radius: 3px;
+            border: none;
+        }
+
+        .font-size-input {
+            width: 80px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 2px solid #cbd5e1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+            <span class="mr-2">💬</span>Dear Diary
+        </h2>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">选择日期：</label>
+            <input type="date" id="date"
+                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button onclick="execCommand('bold')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">B</button>
+                <button onclick="execCommand('italic')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">I</button>
+                <button onclick="execCommand('underline')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">U</button>
+
+                <!-- 修复后的颜色选择器 -->
+                <input type="color" id="colorPicker" class="color-picker">
+                <button onclick="applyTextColor()" class="toolbar-btn bg-blue-500 hover:bg-blue-600">应用颜色</button>
+                <button onclick="insertDialog('女朋友')" class="toolbar-btn bg-pink-500 hover:bg-pink-600">👩</button>
+                <button onclick="insertDialog('男朋友')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">👨</button>
+                <button onclick="undoAction()" class="toolbar-btn bg-gray-500 hover:bg-gray-600">↩️ 撤销</button>
+
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                <button onclick="document.getElementById('imageUpload').click()"
+                    class="toolbar-btn bg-orange-500 hover:bg-orange-600">📷 插入图片</button>
+                <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                <button onclick="document.getElementById('videoUpload').click()"
+                    class="toolbar-btn bg-green-500 hover:bg-green-600">🎥 插入视频</button>
+            </div>
+
+            <div id="editor" contenteditable="true"
+                class="min-h-[300px] p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-colors"
+                placeholder="在此输入内容..." onkeydown="handleKeyDown(event)"></div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button onclick="saveEntry()" class="action-btn bg-green-500 hover:bg-green-600">💾 保存记录</button>
+            <button onclick="saveFile()" class="action-btn bg-purple-500 hover:bg-purple-600">⬇️ 下载文件</button>
+            <!-- 添加跳转按钮 -->
+            <button onclick="redirectToAnotherPage()" class="action-btn bg-pink-300 hover:bg-pink-300">➡️Our
+                Memory</button>
+        </div>
+
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">代码预览</h2>
+            <pre id="generatedCode" class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm"></pre>
+        </div>
+    </div>
+
+    <script src="./message.js"></script>
+    <script>
+        // 数据存储
+        let newMessages = {};
+        let savedDirectoryHandle = null; // 存储用户选择的目录句柄
+
+        // 初始化加载
+        function init() {
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+            loadEntryForDate();
+            document.getElementById('date').addEventListener('change', loadEntryForDate);
+        }
+
+        // 加载日记内容
+        function loadEntryForDate() {
+            const dateInput = document.getElementById('date').value;
+            const dateKey = dateInput.replace(/-/g, '');
+            let content = '';
+
+            if (newMessages[dateKey]) {
+                content = newMessages[dateKey];
+            }
+            else if (messages && messages[dateKey]) {
+                content = messages[dateKey]
+                    .replace(/\\n/g, '\n')
+                    .replace(/\\'/g, "'")
+                    .replace(/\\\\/g, '\\');
+            }
+            document.getElementById('editor').innerHTML = content;
+        }
+
+        // 保存记录
+        function saveEntry() {
+            const dateInput = document.getElementById('date').value;
+            const date = dateInput.replace(/-/g, '');
+            const content = document.getElementById('editor').innerHTML;
+
+            if (!/^\d{8}$/.test(date)) {
+                showAlert('日期格式错误，请使用YYYY-MM-DD格式', true);
+                return;
+            }
+
+            if (!content.trim()) {
+                showAlert('内容不能为空', true);
+                return;
+            }
+
+            newMessages[date] = content;
+            showAlert('记录已保存');
+            generateCode();
+        }
+
+        // 生成代码预览
+        function generateCode() {
+            let code = 'const messages = {\n';
+            for (const [date, html] of Object.entries(newMessages)) {
+                let cleanedHtml = html.replace(/<div>/g, '').replace(/<\/div>/g, '').replace(/<br>/g, '').replace(/"(.*?\.(png|jpg|mp4|heic|mp4|jpeg))"HL/g, '"$1"');
+                const escaped = cleanedHtml
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/\n/g, '\\n');
+                code += `    '${date}': '${escaped}',\n`;
+            }
+            document.getElementById('generatedCode').textContent = code + '};';
+        }
+
+        async function saveFile() {
+            const merged = { ...messages, ...newMessages };
+            let content = 'const messages = {\n';
+
+            for (const [date, html] of Object.entries(merged)) {
+                let cleanedHtml = html.replace(/<div>/g, '').replace(/<\/div>/g, '').replace(/<br>/g, '').replace(/"(.*?\.(png|jpg|mp4|heic|mp4|jpeg))"HL/g, '"$1"');
+                const escaped = cleanedHtml
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/\n/g, '\\n');
+                content += `    '${date}': '${escaped}',\n`;
+            }
+            content += '};';
+
+            // 1. 获取目录句柄（首次运行需用户选择）
+            if (!savedDirectoryHandle) {
+                try {
+                    // 弹出目录选择对话框（用户需选择当前HTML所在目录）
+                    savedDirectoryHandle = await window.showDirectoryPicker();
+                } catch (err) {
+                    console.error('目录选择失败:', err);
+                    showAlert('请选择保存目录');
+                    return;
+                }
+            }
+            // 2. 在选择的目录中创建/覆盖 message.js
+            try {
+                // 获取或创建文件句柄
+                const fileHandle = await savedDirectoryHandle.getFileHandle('message.js', { create: true });
+                // 写入内容
+                const writable = await fileHandle.createWritable();
+                await writable.write(content);
+                await writable.close(savedDirectoryHandle);
+                showAlert(`文件已保存到：${savedDirectoryHandle.name}`);
+            } catch (err) {
+                console.error('保存失败:', err);
+                showAlert('保存失败，请检查权限');
+            }
+        }
+
+        // 以下为原有功能实现
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const brText = document.createTextNode("HL");
+                    range.insertNode(brText);
+                    const newRange = document.createRange();
+                    newRange.setStartAfter(brText);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            }
+        }
+
+        function insertDialog(role) {
+            const text = `${role}：""。`;
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                const textNode = document.createTextNode(text);
+                range.insertNode(textNode);
+                const newRange = document.createRange();
+                newRange.setStart(textNode, text.length - 2);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+            document.getElementById('editor').focus();
+        }
+
+        function showAlert(message, isError = false) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-message';
+            alertDiv.style.backgroundColor = isError ? '#f44336' : '#4CAF50';
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+
+        function applyTextColor() {
+            const color = document.getElementById('colorPicker').value;
+            document.execCommand('styleWithCSS', true);
+            document.execCommand('foreColor', false, color);
+            showAlert(`已应用颜色：${color}`);
+        }
+
+        function insertColoredText(text, color) {
+            const span = document.createElement('span');
+            span.style.color = color;
+            span.textContent = text;
+            const range = window.getSelection().getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(span);
+            moveCursorAfter(span);
+        }
+
+        function moveCursorAfter(element) {
+            const range = new Range();
+            range.setStartAfter(element);
+            range.collapse(true);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        function insertImage() {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            if (file) {
+                const pathText = `"./images/${file.name}"`;
+                const textNode = document.createTextNode(pathText);
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(textNode);
+                    const newRange = new Range();
+                    newRange.setStartAfter(textNode);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+                fileInput.value = '';
+            }
+        }
+
+        document.getElementById('imageUpload').addEventListener('change', insertImage);
+
+        function insertVideo() {
+            const fileInput = document.getElementById('videoUpload');
+            const file = fileInput.files[0];
+            if (file) {
+                const pathText = `"./videos/${file.name}"`;
+                const textNode = document.createTextNode(pathText);
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(textNode);
+                    const newRange = new Range();
+                    newRange.setStartAfter(textNode);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+                fileInput.value = '';
+            }
+        }
+
+        document.getElementById('videoUpload').addEventListener('change', insertVideo);
+
+        function execCommand(command) {
+            document.execCommand(command);
+            document.getElementById('editor').focus();
+        }
+
+        function undoAction() {
+            document.execCommand('undo');
+        }
+
+        function redirectToAnotherPage() {
+            window.location.href = './loveDaily.html';
+        }
+
+        // 初始化执行
+        init();
+    </script>
+</body>
+
+</html>
