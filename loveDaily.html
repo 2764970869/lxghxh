@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="./resource/source/lxghxh.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>With My Love Huahua Calendar</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Georgia', serif;
+            color: #333;
+            overflow: hidden;
+            position: relative;
+            transition: background 1s ease;
+            background-size: cover;
+            background-blend-mode: overlay;
+        }
+
+        .tooltip {
+            position: fixed;
+            top: 80px;
+            left: 72%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            border-radius: 15px;
+            font-size: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+            padding: 12px 24px;
+            border: none;
+            background-color: #2ECC71;
+            color: #FFFFFF;
+            text-align: center;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .tooltip:hover {
+            background-color: #28C76F;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+       .floating-heart-btn {
+            --heart-color: #ff4081;
+            --hover-color: #e73c75;
+            
+            color: var(--heart-color);
+            font-size: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            margin-left: 8px;
+            padding: 6px 8px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .floating-heart-btn:hover {
+            color: var(--hover-color);
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .floating-heart-btn.heart-beat {
+            animation: heartBeat 1s infinite;
+        }
+
+        /* 季节背景 */
+        body.spring {
+            background-color: rgba(253, 245, 245, 0.7);
+        }
+
+        body.summer {
+            background-color: rgba(240, 250, 235, 0.7);
+        }
+
+        body.autumn {
+            background-color: rgba(255, 245, 230, 0.7);
+        }
+
+        body.winter {
+            background-color: rgba(240, 248, 255, 0.7);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row-reverse;
+            width: 90%;
+            max-width: 1200px;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            flex: 1;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .calendar-container {
+            flex: 1;
+            border-radius: 20px;
+            padding: 20px;
+            align-self: center;
+            animation: fadeIn 1s ease-in-out;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .calendar-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .month-header {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #e91e63;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: slideInLeft 1s ease-in-out;
+            background: -webkit-linear-gradient(#e91e63, #f48fb1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .days-of-week {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            background-color: rgba(244, 143, 177, 0.1);
+            border-radius: 10px;
+            padding: 5px 0;
+        }
+
+        .days-of-week div {
+            flex: 1;
+            padding: 10px 0;
+            font-weight: bold;
+            color: #e91e63;
+            text-align: center;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .days div {
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            border-radius: 50%;
+            text-align: center;
+            position: relative;
+        }
+
+        .days div:hover {
+            color: white;
+            font-weight: bold;
+            transform: scale(1.1);
+            background-color: rgba(233, 30, 99, 0.1);
+            box-shadow: 0 0 10px rgba(233, 30, 99, 0.2);
+        }
+
+        .days div.clicked {
+            animation: clickEffect 0.5s;
+        }
+
+        @keyframes clickEffect {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+                background-color: #e91e63;
+                color: white;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .haveMsg {
+            background-color: #ffb6c1;
+            color: #8e44ad;
+            font-weight: bold;
+        }
+
+        .haveMsg::after {
+            content: '💌';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+        }
+
+        .special-festival {
+            position: relative;
+            background: linear-gradient(135deg, #ff9de2 0%, #cca8e9 100%);
+            color: #fff;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .special-festival::after {
+            content: '🌼';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+            animation: sparkle 1.5s ease-in-out infinite;
+            filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.2));
+        }
+
+        @keyframes sparkle {
+            0% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        .special-festival:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 158, 226, 0.5);
+        }
+
+        .special-festival span {
+            position: relative;
+            z-index: 2;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .today {
+            background-color: rgba(233, 30, 99, 0.3);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+        }
+
+        .today::after {
+            content: '✨';
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+        }
+
+        .message {
+            flex: 1;
+            padding: 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #8e44ad;
+            text-align: left;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-in-out forwards;
+            min-width: 200px;
+            width: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+            max-height: calc(100vh - 210px);
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .message:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .navigation {
+            position: relative;
+            width: calc(100% - 40px);
+            padding: 5px 10px;
+            display: flex;
+            margin-top: 0px;
+            margin-bottom: 50px;
+            justify-content: center;
+        }
+
+        .navigation button {
+            background-color: #f48fb1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 0 10px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .navigation button:hover {
+            background-color: #e91e63;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e91e63;
+            margin-bottom: 10px;
+        }
+
+        .search-container {
+            margin-top: 80px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .search-container input {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 20px;
+            width: 300px;
+            margin-right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            background-color: #fff;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 5px rgba(233, 30, 99, 0.5);
+        }
+
+        .search-container button {
+            background-color: #f48fb1;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container button:hover {
+            background-color: #e91e63;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .boyfriend-talk {
+            color: #1e88e5;
+        }
+
+        .girlfriend-talk {
+            color: #e91e63;
+        }
+
+        .message img {
+            max-width: 85%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .message-video {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            margin: 20px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .message-video video {
+            filter: brightness(1.3);
+        }
+
+        @media (max-width: 768px) {
+            .message-video {
+                max-width: 100%;
+            }
+        }
+
+        .message-video::-webkit-media-controls {
+            background-color: transparent;
+            padding: 2px;
+        }
+
+        .message-video::-webkit-media-controls-play-button,
+        .message-video::-webkit-media-controls-pause-button {
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+        }
+
+        .message-video::-webkit-media-controls-play-button::before,
+        .message-video::-webkit-media-controls-pause-button::before {
+            content: "";
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 6px 0 6px 10px;
+            border-color: transparent transparent transparent #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .message-video::-webkit-media-controls-pause-button::before {
+            border: none;
+            content: "||";
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .message-video::-webkit-media-controls-play-button:hover,
+        .message-video::-webkit-media-controls-pause-button:hover {
+            transform: scale(1.1);
+        }
+
+        .message-video::-webkit-media-controls-play-button:active,
+        .message-video::-webkit-media-controls-pause-button:active {
+            transform: scale(0.95);
+        }
+
+        .message-video::-webkit-media-controls-timeline {
+            width: 100%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .message-video::-webkit-media-controls-timeline::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, #ff5722, #f44336);
+            border-radius: 2px;
+        }
+
+        .message-video::-webkit-media-controls-volume-slider {
+            width: 60px;
+            height: 4px;
+            border-radius: 2px;
+            margin-left: 12px;
+        }
+
+        .message-video::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+            background-color: #ff5722;
+            border-radius: 50%;
+            width: 12px;
+            height: 4px;
+            cursor: pointer;
+        }
+
+        .message-video::-webkit-media-controls-current-time-display,
+        .message-video::-webkit-media-controls-time-remaining-display {
+            color: #fff;
+            font-size: 12px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .spaceMessage {
+            color: #0DCEDA;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search-container">
+        <input type="text" autocomplete="off" id="search-input" placeholder="关键字 日期 [YYYYMMDD] 年月[YYYYMM]">
+        <button id="search-button">搜索</button>
+    </div>
+
+    <div class="container">
+        <div class="message" id="message"></div>
+        <div class="calendar-container">
+            <div class="calendar" id="calendar"></div>
+        </div>
+    </div>
+    <div class="navigation">
+        <button id="prevYear">上一年</button>
+        <button id="prevMonth">上个月</button>
+        <button id="nextMonth">下个月</button>
+        <button id="nextYear">下一年</button>
+        <a href="./loveEdit.html" class="floating-heart-btn">❤</a>
+    </div>
+
+    <script src="./specialDay.js"></script>
+    <script>
+        const calendar = document.getElementById('calendar');
+        const messageBox = document.getElementById('message');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const prevYearBtn = document.getElementById('prevYear');
+        const nextYearBtn = document.getElementById('nextYear');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+
+        const messagesCache = {};
+
+        function loadMessages(year, callback) {
+            if (messagesCache[year]) {
+                callback(messagesCache[year]);
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = `./message/message_${year}.js`;
+			
+            script.onload = () => {
+                if (window[`messages_${year}`]) {
+                    messagesCache[year] = window[`messages_${year}`];
+                } else {
+                    messagesCache[year] = {};
+                }
+                callback(messagesCache[year]);
+            };
+            script.onerror = () => {
+			    console.log(`加载 message_${year}.js 失败`);
+                messagesCache[year] = {};
+                callback(messagesCache[year]);
+            };
+            document.head.appendChild(script);
+        }
+
+        let currentDate = new Date();
+
+        const earliestDate = new Date(2024, 2, 1);
+
+        const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+        async function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            loadMessages(year, (messagesData) => {
+                const firstDay = new Date(year, month, 1).getDay();
+                const lastDay = new Date(year, month + 1, 0).getDate();
+
+                const fragment = document.createDocumentFragment();
+                fragment.appendChild(createMonthHeader(year, month));
+                fragment.appendChild(createDaysOfWeek());
+                fragment.appendChild(createDays(year, month, firstDay, lastDay, messagesData));
+
+                calendar.innerHTML = '';
+                calendar.appendChild(fragment);
+
+                changeSeasonBackground(month);
+                setMessageBoxHeight();
+            });
+        }
+
+        function createMonthHeader(year, month) {
+            const monthHeader = document.createElement('div');
+            monthHeader.classList.add('month-header');
+            monthHeader.textContent = `${year}年 ${month + 1}月`;
+            return monthHeader;
+        }
+
+        function createDaysOfWeek() {
+            const daysOfWeek = ['日', '一', '二', '三', '四', '五', '六'];
+            const daysOfWeekDiv = document.createElement('div');
+            daysOfWeekDiv.classList.add('days-of-week');
+            daysOfWeek.forEach(day => {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                daysOfWeekDiv.appendChild(dayDiv);
+            });
+            return daysOfWeekDiv;
+        }
+
+        function createDays(year, month, firstDay, lastDay, messagesData) {
+            const daysDiv = document.createElement('div');
+            daysDiv.classList.add('days');
+
+            for (let i = 0; i < firstDay; i++) {
+                daysDiv.appendChild(document.createElement('div'));
+            }
+
+            for (let day = 1; day <= lastDay; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                const dateKey = `${year}${String(month + 1).padStart(2, '0')}${String(day).padStart(2, '0')}`;
+
+                if (messagesData[dateKey]) {
+                    dayDiv.classList.add('haveMsg');
+                }
+                if (specialFestivals[dateKey]) {
+                    dayDiv.classList.add('special-festival');
+                    dayDiv.title = specialFestivals[dateKey];
+                }
+                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                    dayDiv.classList.add('today');
+                }
+                dayDiv.addEventListener('click', () => {
+                    dayDiv.classList.add('clicked');
+                    setTimeout(() => {
+                        dayDiv.classList.remove('clicked');
+                    }, 500);
+                    showMessage(dateKey);
+                });
+                daysDiv.appendChild(dayDiv);
+            }
+            return daysDiv;
+        }
+
+        function showMessage(dateKey) {
+            const year = parseInt(dateKey.slice(0, 4));
+            loadMessages(year, (messagesData) => {
+                const month = parseInt(dateKey.slice(4, 6)) - 1;
+                const day = parseInt(dateKey.slice(6, 8));
+                const dateObj = new Date(year, month, day);
+                const weekDay = weekDays[dateObj.getDay()];
+
+                let messageTitle = `<div class="message-title">${year}年${month + 1}月${day}日 ${weekDay}</div>`;
+                let messageContent = messagesData[dateKey] || '今天没有大事发生，但也是好爱女朋友的一天！';
+
+                if (specialFestivals[dateKey]) {
+                    if (!messagesData[dateKey]) {
+                        messageContent = '';
+                    }
+                    messageContent = `<span class="spaceMessage">今天${specialFestivals[dateKey]}</span><br>` + messageContent;
+                    showTooltip('今天' + specialFestivals[dateKey]);
+                }
+
+                messageContent = messageContent.replace(/(男朋友：)(.*?"。)/g,
+                    '<span class="boyfriend-talk"><strong>$1</strong>$2</span>'
+                );
+
+                messageContent = messageContent.replace(/(女朋友：)(.*?"。)/g,
+                    '<span class="girlfriend-talk"><strong>$1</strong>$2</span>'
+                );
+
+                messageContent = messageContent.replace(/(HL)/g, '<br>');
+
+                messageContent = messageContent.replace(/"(\.\/[^\"]+\.(png|jpeg|jpg|heic))"/g, '<img src="$1" alt="Message Image">');
+
+                messageContent = messageContent.replace(/"(\.\/[^\"]+\.(mp4))"/g, '<video controls class="message-video"><source src="$1" type="video/mp4">您的浏览器不支持视频播放。</video>');
+
+                messageBox.innerHTML = messageTitle + messageContent;
+                setMessageBoxHeight();
+            });
+        }
+
+        function changeSeasonBackground(month) {
+            const body = document.body;
+            body.classList.remove('spring', 'summer', 'autumn', 'winter');
+
+            if (month >= 2 && month < 5) {
+                body.classList.add('spring');
+            } else if (month >= 5 && month < 8) {
+                body.classList.add('summer');
+            } else if (month >= 8 && month < 11) {
+                body.classList.add('autumn');
+            } else {
+                body.classList.add('winter');
+            }
+        }
+
+        function setMessageBoxHeight() {
+            const calendarContainer = document.querySelector('.calendar-container');
+            const calendarHeight = calendarContainer.clientHeight;
+            const messageBoxHeight = messageBox.scrollHeight;
+
+            if (messageBoxHeight < calendarHeight) {
+                messageBox.style.height = `${calendarHeight}px`;
+            } else {
+                messageBox.style.minHeight = `${calendarHeight}px`;
+                messageBox.style.height = 'auto';
+            }
+        }
+
+        function search() {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm === '') return;
+
+            if (/^\d{8}$/.test(searchTerm)) {
+                const year = parseInt(searchTerm.slice(0, 4));
+                const month = parseInt(searchTerm.slice(4, 6)) - 1;
+                const searchDate = new Date(year, month, 1);
+
+                if (searchDate < earliestDate) {
+                    showTooltip('最早日期为 2024 年 3 月 13 日，请输入该日期之后的日期。');
+                    return;
+                }
+
+                loadMessages(year, (messagesData) => {
+                    if (messagesData[searchTerm]) {
+                        currentDate.setFullYear(year);
+                        currentDate.setMonth(month);
+                        renderCalendar();
+                        showMessage(searchTerm);
+                    } else {
+                        showTooltip('未找到该日期的消息。');
+                    }
+                });
+                return;
+            }
+
+            if (/^\d{6}$/.test(searchTerm)) {
+                const year = parseInt(searchTerm.slice(0, 4));
+                const month = parseInt(searchTerm.slice(4, 6)) - 1;
+                const searchDate = new Date(year, month, 1);
+
+                if (searchDate < earliestDate) {
+                    showTooltip('最早日期为 2024 年 3 月 13 日，请输入该日期之后的年月日。');
+                    return;
+                }
+
+                loadMessages(year, (messagesData) => {
+                    currentDate.setFullYear(year);
+                    currentDate.setMonth(month);
+                    renderCalendar();
+                });
+                return;
+            }
+
+            const allYears = [2024, 2025];
+            for (const year of allYears) {
+                loadMessages(year, (messagesData) => {
+                    for (const [dateKey, message] of Object.entries(messagesData)) {
+                        if (message.includes(searchTerm)) {
+                            const foundYear = parseInt(dateKey.slice(0, 4));
+                            const foundMonth = parseInt(dateKey.slice(4, 6)) - 1;
+                            const foundDay = parseInt(dateKey.slice(6, 8));
+                            currentDate.setFullYear(foundYear);
+                            currentDate.setMonth(foundMonth);
+                            renderCalendar();
+                            showMessage(dateKey);
+                            return;
+                        }
+                    }
+                });
+            }
+
+            showTooltip('未找到匹配的消息、日期或年月。');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await renderCalendar();
+        });
+
+        prevMonthBtn.addEventListener('click', () => {
+            document.getElementById('search-input').value = '';
+            const newDate = new Date(currentDate);
+            newDate.setMonth(newDate.getMonth() - 1);
+            if (newDate < earliestDate) {
+                showTooltip('最早日期为 2024 年 3 月，无法查看更早的月份。');
+                return;
+            }
+            currentDate = newDate;
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            document.getElementById('search-input').value = '';
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        prevYearBtn.addEventListener('click', () => {
+            document.getElementById('search-input').value = '';
+            const newDate = new Date(currentDate);
+            newDate.setFullYear(newDate.getFullYear() - 1);
+            if (newDate < earliestDate) {
+                showTooltip('最早日期为 2024 年 3 月，无法查看更早的年份。');
+                currentDate.setFullYear(2024);
+                currentDate.setMonth(2);
+            } else {
+                currentDate = newDate;
+            }
+            renderCalendar();
+        });
+
+        nextYearBtn.addEventListener('click', () => {
+            document.getElementById('search-input').value = '';
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            renderCalendar();
+        });
+
+        searchButton.addEventListener('click', search);
+
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                search();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                const newDate = new Date(currentDate);
+                newDate.setMonth(newDate.getMonth() - 1);
+                if (newDate < earliestDate) {
+                    showTooltip('最早日期为 2024 年 3 月，无法查看更早的月份。');
+                    return;
+                }
+                currentDate = newDate;
+                renderCalendar();
+            } else if (event.key === 'ArrowRight') {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                renderCalendar();
+            }
+        });
+
+        const today = new Date();
+        if (today < earliestDate) {
+            currentDate = earliestDate;
+        }
+        const todayKey = `${currentDate.getFullYear()}${String(currentDate.getMonth() + 1).padStart(2, '0')}${String(currentDate.getDate()).padStart(2, '0')}`;
+        showMessage(todayKey);
+        changeSeasonBackground(currentDate.getMonth());
+        renderCalendar();
+
+        let tooltips = [];
+
+        function fadeAndHideTooltip(tooltip) {
+            tooltip.style.opacity = 0;
+            setTimeout(() => {
+                tooltip.remove();
+                tooltips = tooltips.filter(t => t !== tooltip);
+            }, 350);
+        }
+
+        function showTooltip(message) {
+            const tooltip = document.createElement('div');
+            tooltip.classList.add('tooltip');
+            tooltip.textContent = message;
+            document.body.appendChild(tooltip);
+
+            tooltips.push(tooltip);
+            setTimeout(() => {
+                fadeAndHideTooltip(tooltip);
+            }, 3500);
+        }
+
+    </script>
+</body>
+
+</html>
+    

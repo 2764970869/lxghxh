@@ -3,185 +3,300 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="./source/lxghxh.svg">
+    <link rel="icon" href="./resource/source/lxghxh.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dear Diary</title>
-    <script src="./source/3.4.16.js"></script>
-    <style>
+    <script src="./resource/source/3.4.16.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#EC4899',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1E293B',
+                        light: '#F8F9FC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .toolbar-btn {
+                @apply px-3 py-1.5 rounded-md text-white transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95;
+            }
+            .action-btn {
+                @apply px-4 py-2 rounded-lg text-white transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95;
+            }
+            .editor-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary;
+            }
+            .animate-fadeOut {
+                animation: fadeOut 3s forwards;
+            }
+        }
+
         @keyframes fadeOut {
             0% {
                 opacity: 1;
                 transform: translateY(0);
             }
-
             90% {
                 opacity: 1;
                 transform: translateY(0);
             }
-
             100% {
                 opacity: 0;
                 transform: translateY(-20px);
             }
         }
-
-        .alert-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: #4CAF50;
-            color: white;
-            border-radius: 8px;
-            animation: fadeOut 3s forwards;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-        }
-
-        #editor {
-            min-height: 300px;
-            padding: 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            outline: none;
-            overflow-y: auto;
-            max-height: 60vh;
-            line-height: 1.6;
-        }
-
-        #editor:focus {
-            border-color: #3b82f6;
-        }
-
-        .toolbar-btn {
-            padding: 8px 12px;
-            border-radius: 6px;
-            color: white;
-            transition: background-color 0.2s;
-        }
-
-        .action-btn {
-            padding: 10px 16px;
-            border-radius: 8px;
-            color: white;
-            transition: background-color 0.2s;
-        }
-
-        .color-picker {
-            width: 40px;
-            height: 40px;
-            padding: 2px;
-            border-radius: 4px;
-            border: 2px solid #cbd5e1;
-            cursor: pointer;
-        }
-
-        .color-picker::-webkit-color-swatch {
-            border-radius: 3px;
-            border: none;
-        }
-
-        .font-size-input {
-            width: 80px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 2px solid #cbd5e1;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-8">
-    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
-            <span class="mr-2">💬</span>Dear Diary
-        </h2>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8 font-inter">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
+        <!-- 头部 -->
+        <header class="bg-gradient-to-r from-primary to-blue-600 text-white p-6">
+            <h1 class="text-3xl font-bold flex items-center">
+                <span class="mr-2"></span>Dear Diary
+            </h1>
+        </header>
 
-        <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">选择日期：</label>
-            <input type="date" id="date"
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        </div>
+        <!-- 主内容区 -->
+        <main class="p-6">
+            <!-- 日期选择和导航 -->
+            <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                <div class="flex-grow">
+                    <input type="date" id="date"
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 editor-focus">
+                </div>
 
-        <div class="mb-4">
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button onclick="execCommand('bold')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">B</button>
-                <button onclick="execCommand('italic')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">I</button>
-                <button onclick="execCommand('underline')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">U</button>
+                <div class="flex items-center">
+                    <span id="weekDayDisplay"
+                        class="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700">
+                        请选择日期
+                    </span>
+                </div>
 
-                <!-- 修复后的颜色选择器 -->
-                <input type="color" id="colorPicker" class="color-picker">
-                <button onclick="applyTextColor()" class="toolbar-btn bg-blue-500 hover:bg-blue-600">应用颜色</button>
-                <button onclick="insertDialog('女朋友')" class="toolbar-btn bg-pink-500 hover:bg-pink-600">👩</button>
-                <button onclick="insertDialog('男朋友')" class="toolbar-btn bg-blue-500 hover:bg-blue-600">👨</button>
-                <button onclick="undoAction()" class="toolbar-btn bg-gray-500 hover:bg-gray-600">↩️ 撤销</button>
-
-                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
-                <button onclick="document.getElementById('imageUpload').click()"
-                    class="toolbar-btn bg-orange-500 hover:bg-orange-600">📷 插入图片</button>
-                <input type="file" id="videoUpload" accept="video/*" style="display: none;">
-                <button onclick="document.getElementById('videoUpload').click()"
-                    class="toolbar-btn bg-green-500 hover:bg-green-600">🎥 插入视频</button>
+                <div class="flex-grow sm:flex-grow-0">
+                    <div class="flex gap-2">
+                        <input type="text" id="dateSearch" autocomplete="off" placeholder="输入日期 (YYYYMMDD)"
+                            class="flex-grow px-4 py-2.5 rounded-lg border border-gray-300 editor-focus">
+                        <button id="searchBtn" class="action-btn bg-primary">
+                            搜索
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div id="editor" contenteditable="true"
-                class="min-h-[300px] p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 transition-colors"
-                placeholder="在此输入内容..." onkeydown="handleKeyDown(event)"></div>
-        </div>
+            <!-- 工具栏 -->
+            <div class="mb-4 flex flex-wrap gap-2">
+                <button onclick="execCommand('bold')" class="toolbar-btn bg-primary">
+                    B
+                </button>
+                <button onclick="execCommand('italic')" class="toolbar-btn bg-primary">
+                    I
+                </button>
+                <button onclick="execCommand('underline')" class="toolbar-btn bg-primary">
+                    U
+                </button>
 
-        <div class="flex gap-3 mt-6">
-            <button onclick="saveEntry()" class="action-btn bg-green-500 hover:bg-green-600">💾 保存记录</button>
-            <button onclick="saveFile()" class="action-btn bg-purple-500 hover:bg-purple-600">⬇️ 下载文件</button>
-            <!-- 添加跳转按钮 -->
-            <button onclick="redirectToAnotherPage()" class="action-btn bg-pink-300 hover:bg-pink-300">➡️Our
-                Memory</button>
-        </div>
+                <div class="inline-flex items-center gap-2 border border-gray-300 rounded-lg p-1 bg-white">
+                    <input type="color" id="colorPicker" class="h-9 w-11 border-none cursor-pointer rounded-md">
+                    <button onclick="applyTextColor()" class="toolbar-btn bg-primary text-sm">
+                        应用
+                    </button>
+                </div>
 
-        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">代码预览</h2>
-            <pre id="generatedCode" class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm"></pre>
-        </div>
+                <button onclick="insertDialog('女朋友')" class="toolbar-btn bg-secondary">
+                    GF
+                </button>
+                <button onclick="insertDialog('男朋友')" class="toolbar-btn bg-blue-500">
+                    BF
+                </button>
+
+                <button onclick="undoAction()" class="toolbar-btn bg-gray-500">
+                    ↩️
+                </button>
+
+                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                <button onclick="document.getElementById('imageUpload').click()" class="toolbar-btn bg-warning">
+                    插入图片
+                </button>
+
+                <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                <button onclick="document.getElementById('videoUpload').click()" class="toolbar-btn bg-success">
+                    插入视频
+                </button>
+            </div>
+
+            <!-- 编辑器 -->
+            <div class="mb-6">
+                <div id="editor" contenteditable="true"
+                    class="min-h-[300px] p-5 border-2 border-gray-200 rounded-xl editor-focus transition-all duration-200"
+                    placeholder="在此输入内容..." onkeydown="handleKeyDown(event)"></div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="flex flex-wrap gap-3 mt-6">
+                <button onclick="saveEntry()" class="action-btn bg-success">
+                    💾保存记录
+                </button>
+                <button id="downloadBtn" onclick="saveFile()" class="action-btn bg-purple-500">
+                    ⬇️下载文件
+                </button>
+
+                <button id="prevDay" class="action-btn bg-primary flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                        </path>
+                    </svg>上一天
+                </button>
+                <button id="nextDay" class="action-btn bg-primary flex items-center">
+                    后一天
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+
+                <button onclick="redirectToAnotherPage()" class="action-btn bg-secondary">
+                    Our Memory
+                </button>
+            </div>
+
+            <!-- 代码预览 -->
+            <div class="mt-8 bg-gray-50 rounded-xl p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    代码预览
+                </h2>
+                <pre id="generatedCode" class="bg-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono"></pre>
+            </div>
+        </main>
     </div>
 
-    <script src="./message.js"></script>
     <script>
         // 数据存储
         let newMessages = {};
-        let savedDirectoryHandle = null; // 存储用户选择的目录句柄
+        let savedDirectoryHandle = null;
+		
+		    let undoStack = [];
+    let redoStack = [];
+    const editor = document.getElementById('editor');
+
 
         // 初始化加载
         function init() {
+		        editor.innerHTML = '';  // 清空初始内容
+        undoStack.push(editor.innerHTML);
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
             loadEntryForDate();
             document.getElementById('date').addEventListener('change', loadEntryForDate);
+
+            // 初始化日期搜索功能
+            document.getElementById('searchBtn').addEventListener('click', searchDate);
+            document.getElementById('dateSearch').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') searchDate();
+            });
+
+            // 初始化上一天/下一天按钮
+            document.getElementById('prevDay').addEventListener('click', () => navigateDate(-1));
+            document.getElementById('nextDay').addEventListener('click', () => navigateDate(1));
+
+            // 初始化文件上传
+            document.getElementById('imageUpload').addEventListener('change', insertImage);
+            document.getElementById('videoUpload').addEventListener('change', insertVideo);
+
+            // 更新星期显示
+            updateWeekDayDisplay();
+        }
+
+        // 搜索日期功能
+        function searchDate() {
+            const input = document.getElementById('dateSearch').value.trim();
+            const dateRegex = /^\d{8}$/;
+
+            if (!dateRegex.test(input)) {
+                showAlert('请输入正确的日期格式 (YYYYMMDD)', true);
+                return;
+            }
+
+            const year = input.substring(0, 4);
+            const month = input.substring(4, 6);
+            const day = input.substring(6, 8);
+            const formattedDate = `${year}-${month}-${day}`;
+
+            const date = new Date(formattedDate);
+            if (isNaN(date.getTime())) {
+                showAlert('输入的日期无效', true);
+                return;
+            }
+
+            document.getElementById('date').value = formattedDate;
+            updateWeekDayDisplay();
+            loadEntryForDate();
+            showAlert(`已切换到 ${year}年${month}月${day}日`);
+        }
+
+        // 导航到前一天或后一天
+        function navigateDate(days) {
+            const date = new Date(document.getElementById('date').value || new Date());
+            date.setDate(date.getDate() + days);
+            document.getElementById('date').value = formatDate(date);
+            updateWeekDayDisplay();
+            loadEntryForDate();
+            showAlert(`切换为${days > 0 ? '后' : '前'}一天日期：${document.getElementById('date').value}`);
         }
 
         // 加载日记内容
-        function loadEntryForDate() {
-            const dateInput = document.getElementById('date').value;
-            const dateKey = dateInput.replace(/-/g, '');
-            let content = '';
+        async function loadEntryForDate() {
+            const dateInput = document.getElementById('date');
+            const inputDate = dateInput.value;
+            const [year, month, day] = inputDate.split('-');
+            const filename = `./message/message_${year}.js`;
+            const dateKey = inputDate.replace(/-/g, '');
 
-            if (newMessages[dateKey]) {
-                content = newMessages[dateKey];
+            let oldMessages = {};
+            try {
+                await loadScript(filename);
+            } catch (err) {
+                console.log("文件不存在，将创建新文件");
             }
-            else if (messages && messages[dateKey]) {
-                content = messages[dateKey]
+
+            if (typeof window[`messages_${year}`] === 'undefined') {
+                oldMessages = {};
+            } else {
+                for (const [key, value] of Object.entries(window[`messages_${year}`])) {
+                    if (key.startsWith(year)) {
+                        oldMessages[key] = value;
+                    }
+                }
+            }
+
+            const newMessagesInYear = {};
+            for (const [key, value] of Object.entries(newMessages)) {
+                if (key.startsWith(year)) {
+                    newMessagesInYear[key] = value;
+                }
+            }
+
+            const mergedMessages = { ...oldMessages, ...newMessagesInYear };
+            let content = '';
+            if (mergedMessages && mergedMessages[dateKey]) {
+                content = mergedMessages[dateKey]
                     .replace(/\\n/g, '\n')
                     .replace(/\\'/g, "'")
-                    .replace(/\\\\/g, '\\');
+                    .replace(/\\\\/g, '\\')
+					.replace(/HL/g, 'HL<br>');
             }
             document.getElementById('editor').innerHTML = content;
         }
@@ -209,7 +324,10 @@
 
         // 生成代码预览
         function generateCode() {
-            let code = 'const messages = {\n';
+            const dateInput = document.getElementById('date');
+            const inputDate = dateInput.value;
+            const [year, month, day] = inputDate.split('-');
+            let code = `window.messages_${year} = {\n`;
             for (const [date, html] of Object.entries(newMessages)) {
                 let cleanedHtml = html.replace(/<div>/g, '').replace(/<\/div>/g, '').replace(/<br>/g, '').replace(/"(.*?\.(png|jpg|mp4|heic|mp4|jpeg))"HL/g, '"$1"');
                 const escaped = cleanedHtml
@@ -221,63 +339,107 @@
             document.getElementById('generatedCode').textContent = code + '};';
         }
 
-        async function saveFile() {
-            const merged = { ...messages, ...newMessages };
-            let content = 'const messages = {\n';
+        // 动态加载 JS 文件
+        function loadScript(filename) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = filename;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error(`failed to load ${filename}`));
+                document.head.appendChild(script);
+            });
+        }
 
-            for (const [date, html] of Object.entries(merged)) {
-                let cleanedHtml = html.replace(/<div>/g, '').replace(/<\/div>/g, '').replace(/<br>/g, '').replace(/"(.*?\.(png|jpg|mp4|heic|mp4|jpeg))"HL/g, '"$1"');
-                const escaped = cleanedHtml
+        // 保存文件
+        async function saveFile() {
+            const dateInput = document.getElementById('date');
+            const inputDate = dateInput.value;
+            const [year, month, day] = inputDate.split('-');
+            const dateKey = `${year}${month}${day}`;
+            const filename = `./message/message_${year}.js`;
+            const newFileName = `message_${year}.js`;
+
+            const button = document.getElementById("downloadBtn");
+            button.disabled = true;
+            button.textContent = "正在下载...";
+
+            let oldMessages = {};
+
+            try {
+                await loadScript(filename);
+            } catch (err) {
+                console.log("文件不存在，将创建新文件");
+            }
+
+            if (typeof window[`messages_${year}`] === 'undefined') {
+                oldMessages = {};
+            } else {
+                for (const [key, value] of Object.entries(window[`messages_${year}`])) {
+                    if (key.startsWith(year)) {
+                        oldMessages[key] = value;
+                    }
+                }
+            }
+
+            const newMessagesInYear = {};
+            for (const [key, value] of Object.entries(newMessages)) {
+                if (key.startsWith(year)) {
+                    newMessagesInYear[key] = value;
+                }
+            }
+
+            const mergedMessages = { ...oldMessages, ...newMessagesInYear };
+
+            if (Object.keys(mergedMessages).length === 0) {
+                showAlert("没有数据可以保存");
+                return;
+            }
+
+            let content = `window.messages_${year} = {\n`;
+            for (const [key, html] of Object.entries(mergedMessages)) {
+                let cleanedHtml = html
+                    .replace(/<div>/g, '')
+                    .replace(/<\/div>/g, '')
+                    .replace(/<br>/g, '')
+                    .replace(/"(.*?\.(png|jpg|mp4|heic|jpeg))"HL/g, '"$1"')
                     .replace(/\\/g, '\\\\')
                     .replace(/'/g, "\\'")
                     .replace(/\n/g, '\\n');
-                content += `    '${date}': '${escaped}',\n`;
+
+                content += `    '${key}': '${cleanedHtml}',\n`;
             }
             content += '};';
 
-            // 1. 获取目录句柄（首次运行需用户选择）
             if (!savedDirectoryHandle) {
                 try {
-                    // 弹出目录选择对话框（用户需选择当前HTML所在目录）
                     savedDirectoryHandle = await window.showDirectoryPicker();
                 } catch (err) {
                     console.error('目录选择失败:', err);
                     showAlert('请选择保存目录');
+                    button.disabled = false;
+                    button.textContent = "⬇️ 下载文件";
                     return;
                 }
+            } else {
+                showAlert('文件正在保存中。');
             }
-            // 2. 在选择的目录中创建/覆盖 message.js
+
             try {
-                // 获取或创建文件句柄
-                const fileHandle = await savedDirectoryHandle.getFileHandle('message.js', { create: true });
-                // 写入内容
+                const fileHandle = await savedDirectoryHandle.getFileHandle(newFileName, { create: true });
                 const writable = await fileHandle.createWritable();
                 await writable.write(content);
-                await writable.close(savedDirectoryHandle);
+                await writable.close();
                 showAlert(`文件已保存到：${savedDirectoryHandle.name}`);
             } catch (err) {
                 console.error('保存失败:', err);
                 showAlert('保存失败，请检查权限');
+            } finally {
+                button.disabled = false;
+                button.textContent = "⬇️ 下载文件";
             }
         }
 
-        // 以下为原有功能实现
-        function handleKeyDown(event) {
-            if (event.key === 'Enter') {
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    const brText = document.createTextNode("HL");
-                    range.insertNode(brText);
-                    const newRange = document.createRange();
-                    newRange.setStartAfter(brText);
-                    newRange.collapse(true);
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                }
-            }
-        }
-
+        // 插入对话
         function insertDialog(role) {
             const text = `${role}：""。`;
             const selection = window.getSelection();
@@ -293,17 +455,21 @@
                 selection.addRange(newRange);
             }
             document.getElementById('editor').focus();
+			saveState(); // 在最后添加状态保存
         }
 
+        // 显示提示
         function showAlert(message, isError = false) {
             const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert-message';
-            alertDiv.style.backgroundColor = isError ? '#f44336' : '#4CAF50';
-            alertDiv.textContent = message;
+            alertDiv.className = 'fixed top-6 right-6 px-4 py-3 rounded-lg shadow-lg animate-fadeOut z-50';
+            alertDiv.style.backgroundColor = isError ? '#EF4444' : '#10B981';
+            alertDiv.style.color = 'white';
+            alertDiv.innerHTML = `<i class="bi-${isError ? 'exclamation-circle mr-2' : 'check-circle mr-2'}"></i>${message}`;
             document.body.appendChild(alertDiv);
             setTimeout(() => alertDiv.remove(), 3000);
         }
 
+        // 应用文本颜色
         function applyTextColor() {
             const color = document.getElementById('colorPicker').value;
             document.execCommand('styleWithCSS', true);
@@ -311,30 +477,37 @@
             showAlert(`已应用颜色：${color}`);
         }
 
-        function insertColoredText(text, color) {
-            const span = document.createElement('span');
-            span.style.color = color;
-            span.textContent = text;
-            const range = window.getSelection().getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(span);
-            moveCursorAfter(span);
+        // 处理键盘事件
+        function handleKeyDown(event) {
+		
+			 if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+            event.preventDefault();
+            undoAction();
+        }
+		
+            if (event.key === 'Enter') {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const brText = document.createTextNode("HL");
+                    range.insertNode(brText);
+                    const newRange = document.createRange();
+                    newRange.setStartAfter(brText);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                }
+            }
         }
 
-        function moveCursorAfter(element) {
-            const range = new Range();
-            range.setStartAfter(element);
-            range.collapse(true);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-
+        // 插入图片
         function insertImage() {
             const fileInput = document.getElementById('imageUpload');
             const file = fileInput.files[0];
             if (file) {
-                const pathText = `"./images/${file.name}"`;
+                const dateValue = document.getElementById('date').value;
+                const yearMonth = dateValue.replace(/-/g, '').substring(0, 6);
+                const pathText = `"./resource/${yearMonth}/${file.name}"`;
                 const textNode = document.createTextNode(pathText);
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
@@ -349,15 +522,17 @@
                 }
                 fileInput.value = '';
             }
+			saveState(); // 在最后添加状态保存
         }
 
-        document.getElementById('imageUpload').addEventListener('change', insertImage);
-
+        // 插入视频
         function insertVideo() {
             const fileInput = document.getElementById('videoUpload');
             const file = fileInput.files[0];
             if (file) {
-                const pathText = `"./videos/${file.name}"`;
+                const dateValue = document.getElementById('date').value;
+                const yearMonth = dateValue.replace(/-/g, '').substring(0, 6);
+                const pathText = `"./resource/${yearMonth}/${file.name}"`;
                 const textNode = document.createTextNode(pathText);
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
@@ -372,21 +547,76 @@
                 }
                 fileInput.value = '';
             }
+			saveState(); // 在最后添加状态保存
         }
 
-        document.getElementById('videoUpload').addEventListener('change', insertVideo);
-
-        function execCommand(command) {
-            document.execCommand(command);
-            document.getElementById('editor').focus();
+        // 执行命令
+       // function execCommand(command) {
+      //      document.execCommand(command);
+      //      document.getElementById('editor').focus();
+    //    }
+		
+		    function execCommand(command) {
+        document.execCommand(command);
+        saveState(); // 在命令执行后保存状态
+    }
+		
+		    // 新增状态保存函数
+    function saveState() {
+        const currentHTML = editor.innerHTML;
+        if (undoStack.length === 0 || undoStack[undoStack.length - 1] !== currentHTML) {
+            undoStack.push(currentHTML);
+            redoStack = [];
+            // 限制最大撤销步数（可选）
+            if (undoStack.length > 100) undoStack.shift();
         }
+    }
 
-        function undoAction() {
-            document.execCommand('undo');
+    // 修改后的撤销函数
+    function undoAction() {
+        if (undoStack.length > 1) {
+            // 保存当前状态到重做栈
+            const currentState = undoStack.pop();
+            redoStack.push(currentState);
+            
+            // 恢复前一个状态（避免触发事件）
+            editor.removeEventListener('input', saveState);
+            editor.innerHTML = undoStack[undoStack.length - 1];
+            editor.addEventListener('input', saveState);
         }
+    }
+	
+	
+    // 在编辑器添加输入监听
+    editor.addEventListener('input', saveState);
 
+        // 重定向到另一个页面
         function redirectToAnotherPage() {
-            window.location.href = './index.html';
+            window.location.href = './loveDaily.html';
+        }
+
+        // 更新星期显示
+        function updateWeekDayDisplay() {
+            const dateValue = document.getElementById('date').value;
+            if (!dateValue) {
+                document.getElementById('weekDayDisplay').textContent = '请选择日期';
+                return;
+            }
+
+            const [year, month, day] = dateValue.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            const options = { weekday: 'long' };
+            const weekDay = date.toLocaleDateString('zh-CN', options);
+            document.getElementById('weekDayDisplay').textContent = weekDay;
+        }
+
+        // 格式化日期
+        function formatDate(date) {
+            return [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+            ].join('-');
         }
 
         // 初始化执行
